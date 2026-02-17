@@ -3,32 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaxMad — Premium Chauffeur</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000000">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Taxi SaaS</title>
-    <link rel="manifest" href="/public/manifest.json">
-<meta name="theme-color" content="#8A2BE2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        body { background-color: #000; color: white; font-family: sans-serif; margin: 0; }
+        #map { width: 100%; height: 350px; background-color: #121212; border-bottom: 1px solid #222; }
+   /* Busca la línea 18 y déjala así */
+.search-container { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 12px 20px; display: flex; align-items: center; margin-top: -30px; position: relative; z-index: 10; backdrop-filter: blur(10px); margin-left: 1.5rem; margin-right: 1.5rem; }
+        .input-transparent { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; font-size: 15px; }
+        .vehicle-card { background: transparent; border: 1px solid transparent; border-radius: 20px; padding: 15px 10px; text-align: center; cursor: pointer; opacity: 0.5; transition: 0.3s; }
+        .vehicle-card.active { background: rgba(138, 43, 226, 0.1); border-color: #00ffcc; opacity: 1; }
+        .vehicle-icon { background: #1a1a1a; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; border: 1px solid #333; }
+        .btn-gradient { background: linear-gradient(90deg, #1e90ff, #8A2BE2); width: 100%; padding: 18px; border-radius: 18px; font-weight: 700; border: none; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3); }
+        .form-group { background: #121212; border-radius: 18px; padding: 12px; border: 1px solid #222; margin-bottom: 10px; }
+    </style>
 </head>
-<body class="bg-black text-white font-sans">
-    <div class="max-w-md mx-auto min-h-screen p-6 flex flex-col justify-between">
-        
-        <header class="flex justify-between items-center">
-            <span class="text-gray-400">←</span>
-            <h1 id="nombre-comercial" class="font-bold uppercase tracking-widest text-sm">Cargando...</h1>
-            <span class="text-xs">👑</span>
+<body>
+
+    <div class="max-w-md mx-auto min-h-screen flex flex-col relative">
+        <header class="absolute top-0 w-full p-6 flex justify-between items-center z-50">
+            <button class="bg-black/50 p-2 rounded-full backdrop-blur-md" onclick="location.reload()"><i class="fas fa-chevron-left"></i></button>
+            <div class="text-center">
+                <i class="fas fa-crown text-yellow-500 text-[10px] block"></i>
+                <h1 class="text-[10px] font-bold tracking-[0.3em] uppercase">Madrid Chauffeur</h1>
+            </div>
+            <div class="w-8"></div>
         </header>
 
-        <div class="h-64 bg-zinc-900 rounded-3xl my-6 flex items-center justify-center border border-zinc-800">
-            <p class="text-zinc-500 italic">Cargando Mapa de Google...</p>
-        </div>
+        <div id="map"></div>
 
-        <div class="space-y-4">
-            <input type="text" placeholder="¿A dónde vas?" class="w-full bg-zinc-900 border border-zinc-800 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all">
+        <div class="px-6 pb-10 space-y-4 -mt-4">
+            <div class="search-container shadow-2xl mb-4">
+                <i class="fas fa-search text-cyan-400"></i>
+                <input type="text" id="destino" placeholder="¿A dónde vas?" class="input-transparent">
+            </div>
+
+            <div class="form-group flex items-center">
+                <i class="fas fa-map-marker-alt text-gray-500 w-5"></i>
+                <input type="text" id="origen" placeholder="Punto de recogida" class="input-transparent">
+            </div>
             
-            <button id="btn-reservar" class="w-full py-4 rounded-2xl font-bold shadow-xl transition-transform active:scale-95">
-                RESERVAR AHORA
-            </button>
-        </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="form-group"><input type="text" id="nombre" placeholder="Nombre" class="input-transparent w-full"></div>
+                <div class="form-group"><input type="tel" id="telefono" placeholder="Teléfono" class="input-transparent w-full"></div>
+            </div>
 
+            <div class="grid grid-cols-3 gap-2 py-2">
+                <div class="vehicle-card active" onclick="selectVehicle(this, 'Standard')">
+                    <div class="vehicle-icon"><i class="fas fa-car"></i></div>
+                    <p class="text-[9px] font-bold">STANDARD</p>
+                </div>
+                <div class="vehicle-card" onclick="selectVehicle(this, 'Executive')">
+                    <div class="vehicle-icon"><i class="fas fa-car-side"></i></div>
+                    <p class="text-[9px] font-bold">EXECUTIVE</p>
+                </div>
+                <div class="vehicle-card" onclick="selectVehicle(this, 'Van')">
+                    <div class="vehicle-icon"><i class="fas fa-shuttle-van"></i></div>
+                    <p class="text-[9px] font-bold">VAN</p>
+                </div>
+            </div>
+
+            <button onclick="reservarAhora()" id="btn-reservar" class="btn-gradient">BOOK NOW</button>
+        </div>
     </div>
+
+    <script>
+        let selectedVehicle = "Standard";
+        const supabaseUrl = 'https://asqglwuasvpwstyzvujy.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzcWdsd2xnZ3F4YW55cWtzdXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNDc1NjUsImV4cCI6MjA4NjcyMzU2NX0.nFCvgWihLakBxfXX32NuXjHdJXCH5IYVfddoyehbkHg'; 
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        function selectVehicle(el, type) {
+            document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            selectedVehicle = type;
+        }
+
+        // Función que Google Maps llama al cargar
+        function initMap() {
+            const mapOptions = {
+                center: { lat: 40.4168, lng: -3.7038 },
+                zoom: 14,
+                styles: [{ "elementType": "geometry", "stylers": [{ "color": "#212121" }] }, { "featureType": "road", "elementType": "geometry.fill", "stylers": [{ "color": "#2c2c2c" }] }, { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#000000" }] }],
+                disableDefaultUI: true
+            };
+            const map = new google.maps.Map(document.getElementById("map"), mapOptions);
+            
+            const autocompleteOptions = { componentRestrictions: { country: "es" } };
+            new google.maps.places.Autocomplete(document.getElementById('origen'), autocompleteOptions);
+            new google.maps.places.Autocomplete(document.getElementById('destino'), autocompleteOptions);
+        }
+
+        async function reservarAhora() {
+            const btn = document.getElementById('btn-reservar');
+            const data = {
+                nombre: document.getElementById('nombre').value,
+                telefono: document.getElementById('telefono').value,
+                origen: document.getElementById('origen').value,
+                destino: document.getElementById('destino').value,
+                vehiculo: selectedVehicle
+            };
+
+            if (!data.origen || !data.destino) return alert("Por favor indica origen y destino");
+
+            btn.innerText = "PROCESANDO...";
+            btn.disabled = true;
+
+            try {
+                const { error } = await supabase.from('reservas').insert([data]);
+                if (error) throw error;
+                alert("¡Reserva confirmada!");
+                location.reload();
+            } catch (err) {
+                alert("Error: " + err.message);
+                btn.innerText = "BOOK NOW";
+                btn.disabled = false;
+            }
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDxdjJ1HyJoVgeP6NFoS2i4va-tdRjrJIA&libraries=places&callback=initMap" async defer></script>
 </body>
 </html>
