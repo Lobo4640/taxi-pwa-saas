@@ -19,7 +19,7 @@
 
         #map {
             width: 100%;
-            height: 45vh; /* Altura corregida para visibilidad */
+            height: 45vh;
             background-color: #121212;
             border-bottom: 1px solid #222;
             z-index: 1;
@@ -100,7 +100,7 @@
 
     <div class="booking-container">
         <div class="text-center mb-6">
-            <img src="https://i.ibb.co/mFmS8f6/logo-madrid.png" alt="Logo" class="h-8 mx-auto mb-2">
+            <h2 style="color: #00f2fe; font-weight: bold; letter-spacing: 2px;">MADRID CHAUFFEUR</h2>
         </div>
 
         <div class="input-group">
@@ -141,12 +141,12 @@
     </div>
 
     <script>
-        let selectedVehicle = "Standard";
+        // CONFIGURACIÓN DE SUPABASE (CON NOMBRE ÚNICO PARA EVITAR ERRORES)
+        const sp_Url = 'https://asqglwuasvpwstyzvujy.supabase.co';
+        const sp_Key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzcWdsd2xnZ3F4YW55cWtzdXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNDc1NjUsImV4cCI6MjA4NjcyMzU2NX0.nFCvgWihLakBxfXX32NuXjHdJXCH5IYVfddoyehbkHg';
+        const _db = window.supabase.createClient(sp_Url, sp_Key);
 
-        // Configuración de Supabase (Evitando re-declaración)
-        const supabaseUrl = 'https://asqglwuasvpwstyzvujy.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzcWdsd2xnZ3F4YW55cWtzdXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNDc1NjUsImV4cCI6MjA4NjcyMzU2NX0.nFCvgWihLakBxfXX32NuXjHdJXCH5IYVfddoyehbkHg';
-        const _supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let selectedVehicle = "Standard";
 
         function selectVehicle(el, type) {
             document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('active'));
@@ -154,7 +154,7 @@
             selectedVehicle = type;
         }
 
-        // Función de inicialización del mapa (Visible para la API de Google)
+        // INICIALIZACIÓN DEL MAPA (GLOBAL PARA GOOGLE)
         window.initMap = function() {
             const nightStyle = [
                 { "elementType": "geometry", "stylers": [{ "color": "#212121" }] },
@@ -191,7 +191,7 @@
             btn.disabled = true;
 
             try {
-                const { error } = await _supabase.from('reservas').insert([data]);
+                const { error } = await _db.from('reservas').insert([data]);
                 if (error) throw error;
                 alert("¡Reserva enviada!");
                 location.reload();
