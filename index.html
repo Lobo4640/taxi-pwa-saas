@@ -2,205 +2,37 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <title>TaxMad – Premium</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaxMad – Premium Chauffeur</title>
-
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#000000">
-    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDxdjJ1HyJoVgeP6NFoS2i4va-tdRjrJIA&libraries=places&callback=initMap"></script>
+    </head>
+<body class="bg-black text-white">
 
-    <style>
-        body { background-color: #000; color: white; font-family: sans-serif; margin: 0; overflow-x: hidden; }
+    <div id="map" style="width: 100%; height: 45vh; background: #111;"></div>
 
-        #map {
-            width: 100%;
-            height: 45vh;
-            background-color: #121212;
-            border-bottom: 1px solid #222;
-            z-index: 1;
-        }
-
-        .booking-container {
-            padding: 20px;
-            background: linear-gradient(180deg, #000 0%, #111 100%);
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            margin-top: -20px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .input-group {
-            background: #1a1a1a;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            border: 1px solid #333;
-        }
-
-        .input-group i { color: #00f2fe; margin-right: 10px; }
-
-        input {
-            background: transparent;
-            border: none;
-            color: white;
-            width: 100%;
-            outline: none;
-            font-size: 16px;
-        }
-
-        .vehicle-selection {
-            display: flex;
-            justify-content: space-around;
-            margin: 20px 0;
-        }
-
-        .vehicle-card {
-            text-align: center;
-            padding: 15px;
-            border-radius: 15px;
-            background: #111;
-            border: 1px solid #222;
-            width: 30%;
-            transition: 0.3s;
-            cursor: pointer;
-        }
-
-        .vehicle-card.active {
-            border-color: #00f2fe;
-            background: rgba(0, 242, 254, 0.1);
-        }
-
-        .vehicle-card i { font-size: 24px; margin-bottom: 5px; display: block; }
-        .vehicle-card span { font-size: 10px; font-weight: bold; color: #888; text-transform: uppercase; }
-
-        .btn-reserve {
-            background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
-            color: white;
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 18px;
-            text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
-        }
-    </style>
-</head>
-<body>
-
-    <div id="map"></div>
-
-    <div class="booking-container">
-        <div class="text-center mb-6">
-            <h2 style="color: #00f2fe; font-weight: bold; letter-spacing: 2px;">MADRID CHAUFFEUR</h2>
-        </div>
-
-        <div class="input-group">
-            <i class="fas fa-search"></i>
-            <input type="text" id="destino" placeholder="¿A dónde vas?">
-        </div>
-
-        <div class="input-group">
-            <i class="fas fa-map-marker-alt"></i>
-            <input type="text" id="origen" placeholder="Punto de recogida">
-        </div>
-
-        <div class="flex gap-2">
-            <div class="input-group w-1/2">
-                <input type="text" id="nombre" placeholder="Nombre">
-            </div>
-            <div class="input-group w-1/2">
-                <input type="text" id="telefono" placeholder="Teléfono">
-            </div>
-        </div>
-
-        <div class="vehicle-selection">
-            <div class="vehicle-card active" onclick="selectVehicle(this, 'Standard')">
-                <i class="fas fa-car"></i>
-                <span>Standard</span>
-            </div>
-            <div class="vehicle-card" onclick="selectVehicle(this, 'Executive')">
-                <i class="fas fa-car-side"></i>
-                <span>Executive</span>
-            </div>
-            <div class="vehicle-card" onclick="selectVehicle(this, 'Van')">
-                <i class="fas fa-bus"></i>
-                <span>Van</span>
-            </div>
-        </div>
-
-        <button class="btn-reserve" id="btn-reservar" onclick="reservarAhora()">Book Now</button>
+    <div class="p-6">
+        <h1 class="text-cyan-400 text-center font-bold tracking-widest mb-4">MADRID CHAUFFEUR</h1>
+        <input type="text" id="destino" placeholder="¿A dónde vas?" class="w-full p-4 bg-zinc-900 rounded-xl mb-3 border border-zinc-800">
+        <input type="text" id="origen" placeholder="Punto de recogida" class="w-full p-4 bg-zinc-900 rounded-xl mb-4 border border-zinc-800">
+        <button class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 p-4 rounded-xl font-bold uppercase" onclick="alert('Enviando...')">Book Now</button>
     </div>
 
     <script>
-        // CONFIGURACIÓN DE SUPABASE (CON NOMBRE ÚNICO PARA EVITAR ERRORES)
-        const sp_Url = 'https://asqglwuasvpwstyzvujy.supabase.co';
-        const sp_Key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzcWdsd2xnZ3F4YW55cWtzdXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNDc1NjUsImV4cCI6MjA4NjcyMzU2NX0.nFCvgWihLakBxfXX32NuXjHdJXCH5IYVfddoyehbkHg';
-        const _db = window.supabase.createClient(sp_Url, sp_Key);
-
-        let selectedVehicle = "Standard";
-
-        function selectVehicle(el, type) {
-            document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            selectedVehicle = type;
-        }
-
-        // INICIALIZACIÓN DEL MAPA (GLOBAL PARA GOOGLE)
+        // Declaración global de la función
         window.initMap = function() {
-            const nightStyle = [
-                { "elementType": "geometry", "stylers": [{ "color": "#212121" }] },
-                { "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
-                { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#2c2c2c" }] },
-                { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#000000" }] }
-            ];
-
+            console.log("Mapa cargado con éxito");
             const map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: 40.4168, lng: -3.7038 }, 
+                center: { lat: 40.4168, lng: -3.7038 },
                 zoom: 14,
-                styles: nightStyle,
-                disableDefaultUI: true
+                disableDefaultUI: true,
+                styles: [{ "elementType": "geometry", "stylers": [{ "color": "#212121" }] }]
             });
-
-            const options = { componentRestrictions: { country: "es" } };
-            new google.maps.places.Autocomplete(document.getElementById('origen'), options);
-            new google.maps.places.Autocomplete(document.getElementById('destino'), options);
+            new google.maps.places.Autocomplete(document.getElementById('origen'), { componentRestrictions: { country: "es" } });
+            new google.maps.places.Autocomplete(document.getElementById('destino'), { componentRestrictions: { country: "es" } });
         };
-
-        async function reservarAhora() {
-            const btn = document.getElementById('btn-reservar');
-            const data = {
-                nombre: document.getElementById('nombre').value,
-                telefono: document.getElementById('telefono').value,
-                origen: document.getElementById('origen').value,
-                destino: document.getElementById('destino').value,
-                vehiculo: selectedVehicle
-            };
-
-            if (!data.origen || !data.destino || !data.nombre) return alert("Por favor rellena los datos");
-
-            btn.innerText = "ENVIANDO...";
-            btn.disabled = true;
-
-            try {
-                const { error } = await _db.from('reservas').insert([data]);
-                if (error) throw error;
-                alert("¡Reserva enviada!");
-                location.reload();
-            } catch (err) {
-                alert("Error: " + err.message);
-                btn.innerText = "BOOK NOW";
-                btn.disabled = false;
-            }
-        }
     </script>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDxdjJ1HyJoVgeP6NFoS2i4va-tdRjrJIA&libraries=places&callback=initMap" async defer></script>
 </body>
 </html>
