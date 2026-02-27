@@ -2,230 +2,264 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaxMad – Premium Chauffeur</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LiveMad – Premium App</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        body { background-color: #000; color: white; font-family: sans-serif; margin: 0; overflow-x: hidden; }
-
-        /* Mapa con altura controlada para que no tape el resto */
-        #map {
-            width: 100%;
-            height: 42vh; 
-            background-color: #121212;
-            z-index: 1;
+        :root {
+            --blue: #00B5FF;
+            --dark: #112F5C;
+            --bg-app: #ffffff;
+            --input-bg: #e5e7eb;
         }
 
-        .booking-container {
-            padding: 25px 20px;
-            background: linear-gradient(180deg, #0d0d0d 0%, #000000 100%);
-            border-top-left-radius: 25px;
-            border-top-right-radius: 25px;
-            margin-top: -30px; /* Efecto de superposición sobre el mapa */
+        body { 
+            background: #001a3d; 
+            font-family: "Montserrat", sans-serif; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            height: 100vh; 
+        }
+
+        .mobile-container {
+            width: 100%; 
+            max-width: 414px; 
+            background: var(--bg-app); 
             position: relative;
-            z-index: 10;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.9);
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
         }
 
-        .input-group {
-            background: #161616;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            border: 1px solid #222;
-        }
-
-        .input-group i { color: #00f2fe; margin-right: 12px; font-size: 18px; }
-
-        input {
-            background: transparent;
-            border: none;
-            color: white;
-            width: 100%;
-            outline: none;
-            font-size: 16px;
-        }
-
-        .vehicle-selection {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-            gap: 10px;
-        }
-
-        .vehicle-card {
-            flex: 1;
+        /* --- PANTALLA LOGIN --- */
+        #auth-screen {
+            position: absolute; 
+            inset: 0; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            padding: 40px; 
+            background: #001a3d; 
+            color: white; 
+            z-index: 1000; 
             text-align: center;
-            padding: 12px 5px;
-            border-radius: 15px;
-            background: #111;
-            border: 1px solid #222;
-            transition: 0.3s;
-            cursor: pointer;
         }
 
-        .vehicle-card.active {
-            border-color: #00f2fe;
-            background: rgba(0, 242, 254, 0.1);
+        .input-auth {
+            width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); 
+            color: white; outline: none; font-size: 16px;
         }
 
-        .vehicle-card i { font-size: 20px; margin-bottom: 5px; display: block; color: #888; }
-        .vehicle-card.active i { color: #00f2fe; }
-        .vehicle-card span { font-size: 10px; font-weight: bold; color: #666; text-transform: uppercase; }
-        .vehicle-card.active span { color: #fff; }
-
-        .btn-reserve {
-            background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
-            color: white;
-            width: 100%;
-            padding: 18px;
-            border-radius: 15px;
-            font-weight: bold;
-            font-size: 16px;
-            text-transform: uppercase;
-            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.3);
-            border: none;
-            cursor: pointer;
+        /* --- APP PRINCIPAL (OCULTA) --- */
+        #main-app { 
+            display: none; 
+            flex-direction: column; 
+            height: 100%; 
+            background: white;
         }
+
+        /* Header Estilo PWA */
+        .user-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #ddd; }
+        .logo-txt { font-weight: 800; font-size: 22px; color: var(--dark); }
+        .logo-txt span { color: var(--blue); }
+
+        /* Formulario Estilo Captura */
+        .form-content { padding: 0 20px; }
+        .input-group { position: relative; margin-bottom: 10px; }
+        .input-group input {
+            width: 100%; padding: 15px 50px 15px 18px; border-radius: 10px;
+            background: var(--input-bg); border: none; font-size: 15px; font-weight: 500; color: #444;
+        }
+        .input-group i { 
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%); 
+            color: var(--blue); font-size: 18px; cursor: pointer; 
+        }
+
+        #map { width: 100%; flex-grow: 1; background: #f0f0f0; margin-top: 10px; }
+
+        .btn-ver-precio {
+            background: linear-gradient(90deg, #38bdf8 0%, #4f46e5 100%);
+            color: white; padding: 18px; border-radius: 12px; width: 90%;
+            margin: 15px auto; font-weight: 700; text-align: center; cursor: pointer; border: none;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            height: 75px; background: white; display: flex; 
+            justify-content: space-around; align-items: center; border-top: 1px solid #eee;
+        }
+        .nav-item { text-align: center; color: #999; cursor: pointer; font-size: 11px; font-weight: 600; }
+        .nav-item.active { color: var(--dark); }
+        .nav-item i { display: block; font-size: 22px; margin-bottom: 4px; }
+
+        /* Profile View */
+        #view-profile { display: none; padding: 40px 25px; text-align: center; flex-grow: 1; }
     </style>
 </head>
 <body>
 
-    <div id="map"></div>
-
-    <div class="booking-container">
-        <div class="text-center mb-6">
-            <h2 style="color: #00f2fe; font-weight: bold; letter-spacing: 3px; font-size: 14px;">MADRID CHAUFFEUR</h2>
-        </div>
-
-        <div class="input-group">
-            <i class="fas fa-search"></i>
-            <input type="text" id="destino" placeholder="¿A dónde vas?">
-        </div>
-
-        <div class="input-group">
-            <i class="fas fa-map-marker-alt"></i>
-            <input type="text" id="origen" placeholder="Punto de recogida">
-        </div>
-
-        <div class="flex gap-2 mb-2">
-            <div class="input-group w-1/2">
-                <i class="fas fa-user"></i>
-                <input type="text" id="nombre" placeholder="Nombre">
-            </div>
-            <div class="input-group w-1/2">
-                <i class="fas fa-phone"></i>
-                <input type="text" id="telefono" placeholder="Móvil">
-            </div>
-        </div>
-
-        <div class="vehicle-selection">
-            <div class="vehicle-card active" onclick="selectVehicle(this, 'Standard')">
-                <i class="fas fa-car"></i>
-                <span>Standard</span>
-            </div>
-            <div class="vehicle-card" onclick="selectVehicle(this, 'Executive')">
-                <i class="fas fa-car-side"></i>
-                <span>Executive</span>
-            </div>
-            <div class="vehicle-card" onclick="selectVehicle(this, 'Van')">
-                <i class="fas fa-bus"></i>
-                <span>Van</span>
-            </div>
-        </div>
-
-        <button class="btn-reserve" id="btn-reservar" onclick="reservarAhora()">Book Now</button>
+<div class="mobile-container">
+    
+    <div id="auth-screen">
+        <div style="font-size: 35px; font-weight: 800; margin-bottom: 40px;">Live<span style="color:var(--blue)">Mad</span></div>
+        <input type="text" id="user-login" placeholder="admin" class="input-auth">
+        <input type="password" id="pass-login" placeholder="••••" class="input-auth">
+        <button onclick="intentarAcceso()" class="btn-ver-precio" style="width: 100%; margin-top: 20px;">INICIAR SESIÓN</button>
     </div>
 
-    <script>
-        // 1. CONFIGURACIÓN SUPABASE (Nombre único para evitar redeclaración)
-        const SP_URL = 'https://asqglwuasvpwstyzvujy.supabase.co';
-        const SP_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzcWdsd2xnZ3F4YW55cWtzdXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNDc1NjUsImV4cCI6MjA4NjcyMzU2NX0.nFCvgWihLakBxfXX32NuXjHdJXCH5IYVfddoyehbkHg';
-        const _supabase = window.supabase.createClient(SP_URL, SP_KEY);
+    <div id="main-app">
+        
+        <div id="view-home" style="display: flex; flex-direction: column; height: calc(100% - 75px);">
+            <header class="user-header">
+                <div class="user-info">
+                    <img id="img-mini" src="" class="avatar">
+                    <div>
+                        <p style="font-size: 12px; color: #aaa; margin:0;">Welcome</p>
+                        <h2 id="name-mini" style="font-size: 16px; font-weight: 700; margin:0;"></h2>
+                    </div>
+                </div>
+                <div class="logo-txt">Live<span>Mad</span></div>
+            </header>
 
-        let selectedVehicle = "Standard";
+            <div class="form-content">
+                <div class="input-group">
+                    <input type="text" id="origin" placeholder="Punto de encuentro">
+                    <i class="fa-solid fa-location-crosshairs" onclick="geolocalizar()"></i>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="destination" placeholder="A donde vamos?">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <div class="input-group">
+                    <input type="text" placeholder="Agendar / ahora mismo">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+            </div>
 
-        function selectVehicle(el, type) {
-            document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            selectedVehicle = type;
+            <div id="map"></div>
+            <button class="btn-ver-precio" onclick="calcular()">VER PRECIO</button>
+        </div>
+
+        <div id="view-profile">
+            <img id="img-large" src="" class="avatar" style="width:110px; height:110px; margin: 0 auto 20px;">
+            <h2 id="name-large" class="text-2xl font-bold"></h2>
+            <p class="text-blue-500 font-semibold mb-8">Cliente Premium</p>
+            
+            <div class="bg-gray-100 p-5 rounded-2xl text-left space-y-3">
+                <p><strong>Usuario:</strong> <span id="info-user"></span></p>
+                <p><strong>Email:</strong> vip@livemad.com</p>
+                <p><strong>Status:</strong> Activo</p>
+            </div>
+
+            <button onclick="logout()" class="mt-12 text-red-500 font-bold flex items-center justify-center w-full gap-2">
+                <i class="fa-solid fa-right-from-bracket"></i> CERRAR SESIÓN
+            </button>
+        </div>
+
+        <nav class="bottom-nav">
+            <div class="nav-item active" id="btn-home" onclick="nav('home')"><i class="fa-solid fa-house"></i>Home</div>
+            <div class="nav-item"><i class="fa-solid fa-route"></i>Viajes</div>
+            <div class="nav-item"><i class="fa-solid fa-calendar-check"></i>Reservas</div>
+            <div class="nav-item" id="btn-profile" onclick="nav('profile')"><i class="fa-solid fa-circle-user"></i>Profile</div>
+        </nav>
+
+    </div>
+</div>
+
+<script>
+    let map, directionsService, directionsRenderer, geocoder;
+
+    // Estos datos NO se muestran hasta el login
+    const DATA = {
+        user: "admin",
+        nombre: "Dani Martínez",
+        foto: "https://i.pravatar.cc/150?u=admin"
+    };
+
+    function intentarAcceso() {
+        const u = document.getElementById('user-login').value;
+        const p = document.getElementById('pass-login').value;
+
+        if (u === 'admin' && p === '1234') {
+            // Inyectar datos
+            document.getElementById('name-mini').innerText = DATA.user;
+            document.getElementById('name-large').innerText = DATA.nombre;
+            document.getElementById('info-user').innerText = DATA.user;
+            document.getElementById('img-mini').src = DATA.foto;
+            document.getElementById('img-large').src = DATA.foto;
+
+            // Mostrar App
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
+            
+            initMap();
+        } else {
+            alert("Acceso incorrecto (admin / 1234)");
         }
+    }
 
-        // 2. FUNCIÓN DEL MAPA (Global para Google)
-        window.initMap = function() {
-            const map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: 40.4168, lng: -3.7038 }, 
-                zoom: 14,
-                styles: [
-                    { "elementType": "geometry", "stylers": [{ "color": "#212121" }] },
-                    { "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
-                    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#2c2c2c" }] },
-                    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#000000" }] }
-                ],
-                disableDefaultUI: true
+    function initMap() {
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer();
+        geocoder = new google.maps.Geocoder();
+        
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 40.4168, lng: -3.7038}, zoom: 14, disableDefaultUI: true
+        });
+        directionsRenderer.setMap(map);
+
+        const opts = { componentRestrictions: { country: "es" } };
+        new google.maps.places.Autocomplete(document.getElementById('origin'), opts);
+        new google.maps.places.Autocomplete(document.getElementById('destination'), opts);
+    }
+
+    function geolocalizar() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                geocoder.geocode({ location: coords }, (res, status) => {
+                    if (status === "OK") document.getElementById('origin').value = res[0].formatted_address;
+                });
+                map.setCenter(coords);
             });
-
-            const options = { componentRestrictions: { country: "es" } };
-            new google.maps.places.Autocomplete(document.getElementById('origen'), options);
-            new google.maps.places.Autocomplete(document.getElementById('destino'), options);
-        };
-
-        // 3. ENVIAR RESERVA
-        async function reservarAhora() {
-            const btn = document.getElementById('btn-reservar');
-            const data = {
-                nombre: document.getElementById('nombre').value,
-                telefono: document.getElementById('telefono').value,
-                origen: document.getElementById('origen').value,
-                destino: document.getElementById('destino').value,
-                vehiculo: selectedVehicle
-            };
-
-            if (!data.origen || !data.destino || !data.nombre) {
-                return alert("Por favor, completa los campos principales");
-            }
-
-            btn.innerText = "ENVIANDO...";
-            btn.disabled = true;
-
-            try {
-                const { error } = await _supabase.from('reservas').insert([data]);
-                if (error) throw error;
-                alert("¡Reserva confirmada! Nos pondremos en contacto.");
-                location.reload();
-            } catch (err) {
-                alert("Error: " + err.message);
-                btn.innerText = "BOOK NOW";
-                btn.disabled = false;
-            }
         }
-        // Registro del Service Worker para que la PWA funcione offline
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('TaxMad SW registrado', reg))
-      .catch(err => console.log('Error registrando SW', err));
-  });
-}
+    }
 
-// Función para calcular distancia entre dos puntos (Haversine)
-function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Radio de la Tierra en km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-}
-    </script>
+    function calcular() {
+        const o = document.getElementById('origin').value;
+        const d = document.getElementById('destination').value;
+        if(!o || !d) return alert("Faltan datos");
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDxdjJ1HyJoVgeP6NFoS2i4va-tdRjrJIA&libraries=places&callback=initMap" async defer></script>
+        directionsService.route({ origin: o, destination: d, travelMode: 'DRIVING' }, (res, status) => {
+            if(status === 'OK') {
+                directionsRenderer.setDirections(res);
+                const km = res.routes[0].legs[0].distance.value / 1000;
+                alert("Estimado: " + (5 + km * 1.5).toFixed(2) + "€");
+            }
+        });
+    }
+
+    function nav(dest) {
+        document.getElementById('view-home').style.display = dest === 'home' ? 'flex' : 'none';
+        document.getElementById('view-profile').style.display = dest === 'profile' ? 'block' : 'none';
+        document.getElementById('btn-home').classList.toggle('active', dest === 'home');
+        document.getElementById('btn-profile').classList.toggle('active', dest === 'profile');
+    }
+
+    function logout() { location.reload(); }
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDxdjJ1HyJoVgeP6NFoS2i4va-tdRjrJIA&libraries=places" async defer></script>
+
 </body>
 </html>
