@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LiveMad – Premium App</title>
+    <title>LiveMad – Taxi PWA SaaS</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
@@ -57,7 +58,7 @@
             color: white; outline: none; font-size: 16px;
         }
 
-        /* --- APP PRINCIPAL (OCULTA) --- */
+        /* --- APP PRINCIPAL --- */
         #main-app { 
             display: none; 
             flex-direction: column; 
@@ -65,14 +66,12 @@
             background: white;
         }
 
-        /* Header Estilo PWA */
         .user-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; }
         .user-info { display: flex; align-items: center; gap: 12px; }
         .avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #ddd; }
         .logo-txt { font-weight: 800; font-size: 22px; color: var(--dark); }
         .logo-txt span { color: var(--blue); }
 
-        /* Formulario Estilo Captura */
         .form-content { padding: 0 20px; }
         .input-group { position: relative; margin-bottom: 10px; }
         .input-group input {
@@ -86,12 +85,15 @@
 
         #map { width: 100%; flex-grow: 1; background: #f0f0f0; margin-top: 10px; }
 
-        .btn-ver-precio {
+        .btn-main {
             background: linear-gradient(90deg, #38bdf8 0%, #4f46e5 100%);
             color: white; padding: 18px; border-radius: 12px; width: 90%;
             margin: 15px auto; font-weight: 700; text-align: center; cursor: pointer; border: none;
             box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+            transition: all 0.2s;
         }
+        .btn-main:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-main:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
         /* Bottom Nav */
         .bottom-nav {
@@ -102,7 +104,6 @@
         .nav-item.active { color: var(--dark); }
         .nav-item i { display: block; font-size: 22px; margin-bottom: 4px; }
 
-        /* Profile View */
         #view-profile { display: none; padding: 40px 25px; text-align: center; flex-grow: 1; }
     </style>
 </head>
@@ -112,9 +113,10 @@
     
     <div id="auth-screen">
         <div style="font-size: 35px; font-weight: 800; margin-bottom: 40px;">Live<span style="color:var(--blue)">Mad</span></div>
-        <input type="text" id="user-login" placeholder="admin" class="input-auth">
-        <input type="password" id="pass-login" placeholder="••••" class="input-auth">
-        <button onclick="intentarAcceso()" class="btn-ver-precio" style="width: 100%; margin-top: 20px;">INICIAR SESIÓN</button>
+        <p class="mb-6 opacity-70">Acceso Premium SaaS</p>
+        <input type="text" id="user-login" placeholder="Usuario (admin)" class="input-auth">
+        <input type="password" id="pass-login" placeholder="Contraseña (1234)" class="input-auth">
+        <button onclick="intentarAcceso()" class="btn-main" style="width: 100%; margin-top: 20px;">INICIAR SESIÓN</button>
     </div>
 
     <div id="main-app">
@@ -124,8 +126,8 @@
                 <div class="user-info">
                     <img id="img-mini" src="" class="avatar">
                     <div>
-                        <p style="font-size: 12px; color: #aaa; margin:0;">Welcome</p>
-                        <h2 id="name-mini" style="font-size: 16px; font-weight: 700; margin:0;"></h2>
+                        <p style="font-size: 11px; color: #aaa; margin:0; text-transform: uppercase;">Premium</p>
+                        <h2 id="name-mini" style="font-size: 15px; font-weight: 700; margin:0; color: var(--dark);"></h2>
                     </div>
                 </div>
                 <div class="logo-txt">Live<span>Mad</span></div>
@@ -137,28 +139,27 @@
                     <i class="fa-solid fa-location-crosshairs" onclick="geolocalizar()"></i>
                 </div>
                 <div class="input-group">
-                    <input type="text" id="destination" placeholder="A donde vamos?">
+                    <input type="text" id="destination" placeholder="¿A dónde vamos?">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                </div>
-                <div class="input-group">
-                    <input type="text" placeholder="Agendar / ahora mismo">
-                    <i class="fa-solid fa-calendar-days"></i>
                 </div>
             </div>
 
             <div id="map"></div>
-            <button class="btn-ver-precio" onclick="calcular()">VER PRECIO</button>
+            
+            <button id="btnAction" class="btn-main" onclick="procesarViaje()">
+                CALCULAR PRECIO
+            </button>
         </div>
 
         <div id="view-profile">
-            <img id="img-large" src="" class="avatar" style="width:110px; height:110px; margin: 0 auto 20px;">
+            <img id="img-large" src="" class="avatar" style="width:110px; height:110px; margin: 0 auto 20px; border: 4px solid var(--blue);">
             <h2 id="name-large" class="text-2xl font-bold"></h2>
-            <p class="text-blue-500 font-semibold mb-8">Cliente Premium</p>
+            <p class="text-blue-500 font-semibold mb-8">Cliente VIP</p>
             
             <div class="bg-gray-100 p-5 rounded-2xl text-left space-y-3">
-                <p><strong>Usuario:</strong> <span id="info-user"></span></p>
+                <p><strong>Usuario ID:</strong> <span id="info-user"></span></p>
                 <p><strong>Email:</strong> vip@livemad.com</p>
-                <p><strong>Status:</strong> Activo</p>
+                <p><strong>SaaS Tier:</strong> Enterprise</p>
             </div>
 
             <button onclick="logout()" class="mt-12 text-red-500 font-bold flex items-center justify-center w-full gap-2">
@@ -167,20 +168,29 @@
         </div>
 
         <nav class="bottom-nav">
-            <div class="nav-item active" id="btn-home" onclick="nav('home')"><i class="fa-solid fa-house"></i>Home</div>
-            <div class="nav-item"><i class="fa-solid fa-route"></i>Viajes</div>
-            <div class="nav-item"><i class="fa-solid fa-calendar-check"></i>Reservas</div>
-            <div class="nav-item" id="btn-profile" onclick="nav('profile')"><i class="fa-solid fa-circle-user"></i>Profile</div>
+            <div class="nav-item active" id="btn-home" onclick="nav('home')">
+                <i class="fa-solid fa-house"></i>Home
+            </div>
+            <div class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i>Viajes</div>
+            <div class="nav-item" id="btn-profile" onclick="nav('profile')">
+                <i class="fa-solid fa-circle-user"></i>Perfil
+            </div>
         </nav>
 
     </div>
 </div>
 
 <script>
-    let map, directionsService, directionsRenderer, geocoder;
+    // --- CONFIGURACIÓN SUPABASE ---
+    const SUPABASE_URL = 'https://TU_PROYECTO_URL.supabase.co';
+    const SUPABASE_KEY = 'TU_ANON_KEY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Estos datos NO se muestran hasta el login
-    const DATA = {
+    let map, directionsService, directionsRenderer, geocoder;
+    let ultimoCalculo = null;
+    let estadoApp = "CALCULAR"; // "CALCULAR" o "RESERVAR"
+
+    const USER_DATA = {
         user: "admin",
         nombre: "Dani Martínez",
         foto: "https://i.pravatar.cc/150?u=admin"
@@ -191,30 +201,33 @@
         const p = document.getElementById('pass-login').value;
 
         if (u === 'admin' && p === '1234') {
-            // Inyectar datos
-            document.getElementById('name-mini').innerText = DATA.user;
-            document.getElementById('name-large').innerText = DATA.nombre;
-            document.getElementById('info-user').innerText = DATA.user;
-            document.getElementById('img-mini').src = DATA.foto;
-            document.getElementById('img-large').src = DATA.foto;
+            document.getElementById('name-mini').innerText = USER_DATA.nombre;
+            document.getElementById('name-large').innerText = USER_DATA.nombre;
+            document.getElementById('info-user').innerText = USER_DATA.user;
+            document.getElementById('img-mini').src = USER_DATA.foto;
+            document.getElementById('img-large').src = USER_DATA.foto;
 
-            // Mostrar App
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'flex';
             
             initMap();
         } else {
-            alert("Acceso incorrecto (admin / 1234)");
+            alert("Credenciales incorrectas");
         }
     }
 
     function initMap() {
         directionsService = new google.maps.DirectionsService();
-        directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer = new google.maps.DirectionsRenderer({
+            polylineOptions: { strokeColor: '#4f46e5', strokeWeight: 5 }
+        });
         geocoder = new google.maps.Geocoder();
         
         map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: 40.4168, lng: -3.7038}, zoom: 14, disableDefaultUI: true
+            center: {lat: 40.4168, lng: -3.7038}, 
+            zoom: 14, 
+            disableDefaultUI: true,
+            styles: [{"featureType": "poi", "stylers": [{"visibility": "off"}]}]
         });
         directionsRenderer.setMap(map);
 
@@ -235,18 +248,61 @@
         }
     }
 
-    function calcular() {
-        const o = document.getElementById('origin').value;
-        const d = document.getElementById('destination').value;
-        if(!o || !d) return alert("Faltan datos");
+    async function procesarViaje() {
+        const btn = document.getElementById('btnAction');
 
-        directionsService.route({ origin: o, destination: d, travelMode: 'DRIVING' }, (res, status) => {
-            if(status === 'OK') {
-                directionsRenderer.setDirections(res);
-                const km = res.routes[0].legs[0].distance.value / 1000;
-                alert("Estimado: " + (5 + km * 1.5).toFixed(2) + "€");
+        if (estadoApp === "CALCULAR") {
+            const o = document.getElementById('origin').value;
+            const d = document.getElementById('destination').value;
+            if(!o || !d) return alert("Por favor, introduce origen y destino.");
+
+            directionsService.route({ origin: o, destination: d, travelMode: 'DRIVING' }, (res, status) => {
+                if(status === 'OK') {
+                    directionsRenderer.setDirections(res);
+                    const leg = res.routes[0].legs[0];
+                    const km = leg.distance.value / 1000;
+                    const precioFinal = (6 + km * 1.60).toFixed(2);
+                    
+                    ultimoCalculo = {
+                        origen: o,
+                        destino: d,
+                        distancia: km.toFixed(2) + " km",
+                        precio: precioFinal
+                    };
+
+                    btn.innerText = `PEDIR AHORA (${precioFinal}€)`;
+                    estadoApp = "RESERVAR";
+                } else {
+                    alert("No se pudo encontrar una ruta válida.");
+                }
+            });
+        } 
+        else if (estadoApp === "RESERVAR") {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> BUSCANDO CONDUCTOR...';
+
+            // --- ENVÍO REAL A SUPABASE ---
+            const { error } = await supabaseClient
+                .from('viajes')
+                .insert([{ 
+                    cliente_nombre: USER_DATA.nombre,
+                    origen: ultimoCalculo.origen,
+                    destino: ultimoCalculo.destino,
+                    precio: parseFloat(ultimoCalculo.precio),
+                    distancia: ultimoCalculo.distancia,
+                    estado: 'pendiente'
+                }]);
+
+            if (error) {
+                console.error(error);
+                alert("Error de conexión con Supabase.");
+                btn.disabled = false;
+                btn.innerText = `REINTENTAR (${ultimoCalculo.precio}€)`;
+            } else {
+                alert("¡Viaje solicitado con éxito! Un conductor Premium aceptará tu solicitud pronto.");
+                location.reload(); // Reiniciar para nueva solicitud
             }
-        });
+        }
     }
 
     function nav(dest) {
